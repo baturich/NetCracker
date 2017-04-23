@@ -1,10 +1,16 @@
 package test.java.inventory.model.impl;
 
+
+import main.java.com.kbteam.netcracker.inventory.exception.DeviceValidationException;
 import main.java.com.kbteam.netcracker.inventory.model.Device;
+import main.java.com.kbteam.netcracker.inventory.model.Rack;
 import main.java.com.kbteam.netcracker.inventory.model.impl.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.logging.LogManager;
 
 import static org.junit.Assert.*;
 
@@ -27,6 +33,11 @@ public class RackArrayImplTest {
 
     Battery battery;
 
+//    @BeforeClass
+//    public static void setUp() throws Exception {
+//        Main.initLogger("/logging.properties");
+//    }
+
     @Before
     public void before() throws Exception {
         rackSize0 = new RackArrayImpl(0, "Battery");
@@ -38,7 +49,7 @@ public class RackArrayImplTest {
 
         battery = new Battery();
         battery.setType("Battery");
-        battery.setIn(0);
+        battery.setIn(12);
 
         for (int i = 0; i < 10; i++) {
             rackFullFilled.insertDevToSlot(battery, i);
@@ -57,20 +68,21 @@ public class RackArrayImplTest {
     @Test
     public void constructor() throws Exception {
         RackArrayImpl rack0 = new RackArrayImpl(5, batteryName);
-        Battery battery = new Battery();
-        battery.setType("Battery");
         rack0.insertDevToSlot(battery, 0);
         rack0 = new RackArrayImpl(5, routerName);
         Router router = new Router();
         router.setType("Router");
+        router.setIn(1);
         rack0.insertDevToSlot(router, 0);
         rack0 = new RackArrayImpl(5, switchName);
         Switch aSwitch = new Switch();
         aSwitch.setType("Switch");
+        aSwitch.setIn(2);
         rack0.insertDevToSlot(aSwitch, 0);
         rack0 = new RackArrayImpl(5, wifiRouterName);
         WifiRouter wifiRouter = new WifiRouter();
         wifiRouter.setType("WifiRouter");
+        wifiRouter.setIn(3);
         rack0.insertDevToSlot(wifiRouter, 0);
     }
 
@@ -121,7 +133,6 @@ public class RackArrayImplTest {
     @Test
     public void getDevAtSlot() throws Exception {
         Device expResultDev = battery;
-        Device expResultNull = null;
 
         Device result1 = rackPartlyFilled.getDevAtSlot(0);
         Device result2 = rackPartlyFilled.getDevAtSlot(2);
@@ -129,47 +140,49 @@ public class RackArrayImplTest {
         Device result4 = rackEmpty.getDevAtSlot(0);
         Device result5 = rackEmpty.getDevAtSlot(2);
         Device result6 = rackEmpty.getDevAtSlot(8);
-        Device result7 = rackSize0.getDevAtSlot(-5);
-        Device result8 = rackSize0.getDevAtSlot(-1);
-        Device result9 = rackSize0.getDevAtSlot(0);
-        Device result10 = rackSize0.getDevAtSlot(5);
-        Device result11 = rackSize1.getDevAtSlot(-5);
-        Device result12 = rackSize1.getDevAtSlot(-1);
-        Device result13 = rackSize1.getDevAtSlot(1);
-        Device result14 = rackSize1.getDevAtSlot(5);
-        Device result15 = rackSize3.getDevAtSlot(-5);
-        Device result16 = rackSize3.getDevAtSlot(-1);
-        Device result17 = rackSize3.getDevAtSlot(3);
-        Device result18 = rackSize3.getDevAtSlot(5);
 
         assertEquals(expResultDev, result1);
         assertEquals(expResultDev, result2);
         assertEquals(expResultDev, result3);
-        assertEquals(expResultNull, result4);
-        assertEquals(expResultNull, result5);
-        assertEquals(expResultNull, result6);
-        System.err.println("--expected 12 exceptions \"Out of bounds of rack exception\" (getDevAtSlot())");
-        assertEquals(expResultNull, result7);
-        assertEquals(expResultNull, result8);
-        assertEquals(expResultNull, result9);
-        assertEquals(expResultNull, result10);
-        assertEquals(expResultNull, result11);
-        assertEquals(expResultNull, result12);
-        assertEquals(expResultNull, result13);
-        assertEquals(expResultNull, result14);
-        assertEquals(expResultNull, result15);
-        assertEquals(expResultNull, result16);
-        assertEquals(expResultNull, result17);
-        assertEquals(expResultNull, result18);
+        assertNull(result4);
+        assertNull(result5);
+        assertNull(result6);
 
+    }
+
+    @Test
+    public void getDevAtSlotIndexOutOfBounds() throws Exception {
+        int[] indexesFor0 = new int[] {-5, -1, 0, 5};
+        int[] indexesFor1 = new int[] {-5, -1, 1, 5};
+        int[] indexesFor3 = new int[] {-5, -1, 3, 5};
+        int[][] allIndexes = new int[][] {indexesFor0, indexesFor1, indexesFor3};
+        Rack[] racks = new Rack[] {rackSize0, rackSize1, rackSize3};
+        int count = 0;
+        int expCount = indexesFor0.length + indexesFor1.length + indexesFor3.length;
+
+        for (int i = 0; i < racks.length; i++) {
+            for (int j = 0; j < allIndexes[i].length; j++) {
+                try {
+                    racks[i].getDevAtSlot(allIndexes[i][j]);
+                } catch (IndexOutOfBoundsException e) {
+                    if (e.getClass().equals(IndexOutOfBoundsException.class)) {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        assertEquals(expCount, count);
     }
 
     @Test
     public void insertDevToSlot() throws Exception {
         Battery anotherBattery = new Battery();
         anotherBattery.setType("Battery");
+        anotherBattery.setIn(1);
         Battery batteryBadType = new Battery();
         batteryBadType.setType("BadBattery");
+        batteryBadType.setIn(1);
 
         Device expResultDev = anotherBattery;
 
@@ -182,22 +195,7 @@ public class RackArrayImplTest {
         Device result5a = rackEmpty.getDevAtSlot(3);
         boolean result6 = rackEmpty.insertDevToSlot(anotherBattery, 9);
         Device result6a = rackEmpty.getDevAtSlot(9);
-        boolean result7 = rackSize0.insertDevToSlot(anotherBattery, -5);
-        boolean result8 = rackSize0.insertDevToSlot(anotherBattery, -1);
-        boolean result9 = rackSize0.insertDevToSlot(anotherBattery, 0);
-        boolean result10 = rackSize0.insertDevToSlot(anotherBattery, 5);
-        boolean result11 = rackSize1.insertDevToSlot(anotherBattery, -5);
-        boolean result12 = rackSize1.insertDevToSlot(anotherBattery, -1);
-        boolean result13 = rackSize1.insertDevToSlot(anotherBattery, 1);
-        boolean result14 = rackSize1.insertDevToSlot(anotherBattery, 5);
-        boolean result15 = rackSize3.insertDevToSlot(anotherBattery, -5);
-        boolean result16 = rackSize3.insertDevToSlot(anotherBattery, -1);
-        boolean result17 = rackSize3.insertDevToSlot(anotherBattery, 3);
-        boolean result18 = rackSize3.insertDevToSlot(anotherBattery, 5);
-        boolean result19 = rackPartlyFilled.insertDevToSlot(null, 4); //filled
-        boolean result20 = rackPartlyFilled.insertDevToSlot(null, 5); //not filled
-        boolean result21 = rackPartlyFilled.insertDevToSlot(batteryBadType, 6); //filled
-        boolean result22 = rackPartlyFilled.insertDevToSlot(batteryBadType, 7); //not filled
+        boolean result7 = rackPartlyFilled.insertDevToSlot(batteryBadType, 7); //not filled
 
         assertFalse(result1);
         assertFalse(result2);
@@ -208,29 +206,63 @@ public class RackArrayImplTest {
         assertEquals(expResultDev, result5a);
         assertTrue(result6);
         assertEquals(expResultDev, result6a);
-        System.err.println("--expected 12 exceptions \"Out of bounds of rack exception\" (insertDevToSlot())");
         assertFalse(result7);
-        assertFalse(result8);
-        assertFalse(result9);
-        assertFalse(result10);
-        assertFalse(result11);
-        assertFalse(result12);
-        assertFalse(result13);
-        assertFalse(result14);
-        assertFalse(result15);
-        assertFalse(result16);
-        assertFalse(result17);
-        assertFalse(result18);
-        assertFalse(result19);
-        assertFalse(result20);
-        assertFalse(result21);
-        assertFalse(result22);
+    }
+
+    @Test(expected = DeviceValidationException.class)
+    public void insertDevToSlotDeviceValidationDeviceNullToFilled() throws Exception {
+        rackPartlyFilled.insertDevToSlot(null, 4);
+    }
+
+    @Test(expected = DeviceValidationException.class)
+    public void insertDevToSlotDeviceValidationDeviceNullToNotFilled() throws Exception {
+        rackPartlyFilled.insertDevToSlot(null, 5);
+    }
+
+    @Test(expected = DeviceValidationException.class)
+    public void insertDevToSlotDeviceValidationDeviceWithoutIN() throws Exception {
+        Battery batteryNoIN = new Battery();
+        batteryNoIN.setType("Battery");
+
+        rackPartlyFilled.insertDevToSlot(batteryNoIN, 7); //not filled
+    }
+
+    @Test(expected = DeviceValidationException.class)
+    public void insertDevToSlotDeviceValidationDeviceWithoutType() throws Exception {
+        Battery batteryNoType = new Battery();
+        batteryNoType.setIn(1);
+
+        rackPartlyFilled.insertDevToSlot(batteryNoType, 7); //not filled
+    }
+
+    @Test
+    public void insertDevToSlotIndexOutOfBounds() throws Exception {
+        int[] indexesFor0 = new int[] {-5, -1, 0, 5};
+        int[] indexesFor1 = new int[] {-5, -1, 1, 5};
+        int[] indexesFor3 = new int[] {-5, -1, 3, 5};
+        int[][] allIndexes = new int[][] {indexesFor0, indexesFor1, indexesFor3};
+        Rack[] racks = new Rack[] {rackSize0, rackSize1, rackSize3};
+        int count = 0;
+        int expCount = indexesFor0.length + indexesFor1.length + indexesFor3.length;
+
+        for (int i = 0; i < racks.length; i++) {
+            for (int j = 0; j < allIndexes[i].length; j++) {
+                try {
+                    racks[i].insertDevToSlot(battery, allIndexes[i][j]);
+                } catch (IndexOutOfBoundsException e) {
+                    if (e.getClass().equals(IndexOutOfBoundsException.class)) {
+                        count++;
+                    }
+                }
+            }
+        }
+
+        assertEquals(expCount, count);
     }
 
     @Test
     public void removeDevFromSlot() throws Exception {
         Device expResultDev = battery;
-        Device expResultNull = null;
 
         Device result1 = rackPartlyFilled.removeDevFromSlot(0);
         Device result1a = rackPartlyFilled.getDevAtSlot(0);
@@ -241,41 +273,39 @@ public class RackArrayImplTest {
         Device result4 = rackEmpty.removeDevFromSlot(0);
         Device result5 = rackEmpty.removeDevFromSlot(3);
         Device result6 = rackEmpty.removeDevFromSlot(9);
-        Device result7 = rackSize0.removeDevFromSlot(-5);
-        Device result8 = rackSize0.removeDevFromSlot(-1);
-        Device result9 = rackSize0.removeDevFromSlot(0);
-        Device result10 = rackSize0.removeDevFromSlot(5);
-        Device result11 = rackSize1.removeDevFromSlot(-5);
-        Device result12 = rackSize1.removeDevFromSlot(-1);
-        Device result13 = rackSize1.removeDevFromSlot(1);
-        Device result14 = rackSize1.removeDevFromSlot(5);
-        Device result15 = rackSize3.removeDevFromSlot(-5);
-        Device result16 = rackSize3.removeDevFromSlot(-1);
-        Device result17 = rackSize3.removeDevFromSlot(3);
-        Device result18 = rackSize3.removeDevFromSlot(5);
 
         assertEquals(expResultDev, result1);
-        assertEquals(expResultNull, result1a);
+        assertNull(result1a);
         assertEquals(expResultDev, result2);
-        assertEquals(expResultNull, result2a);
+        assertNull(result2a);
         assertEquals(expResultDev, result3);
-        assertEquals(expResultNull, result3a);
-        assertEquals(expResultNull, result4);
-        assertEquals(expResultNull, result5);
-        assertEquals(expResultNull, result6);
-        System.err.println("--expected 12 exceptions \"Out of bounds of rack exception\" (removeDevFromSlot())");
-        assertEquals(expResultNull, result7);
-        assertEquals(expResultNull, result8);
-        assertEquals(expResultNull, result9);
-        assertEquals(expResultNull, result10);
-        assertEquals(expResultNull, result11);
-        assertEquals(expResultNull, result12);
-        assertEquals(expResultNull, result13);
-        assertEquals(expResultNull, result14);
-        assertEquals(expResultNull, result15);
-        assertEquals(expResultNull, result16);
-        assertEquals(expResultNull, result17);
-        assertEquals(expResultNull, result18);
+        assertNull(result3a);
+        assertNull(result4);
+        assertNull(result5);
+        assertNull(result6);
+    }
+
+    @Test
+    public void removeDevFromSlotIndexOutOfBounds() throws Exception {
+        int[] indexesFor0 = new int[] {-5, -1, 0, 5};
+        int[] indexesFor1 = new int[] {-5, -1, 1, 5};
+        int[] indexesFor3 = new int[] {-5, -1, 3, 5};
+        int[][] allIndexes = new int[][] {indexesFor0, indexesFor1, indexesFor3};
+        Rack[] racks = new Rack[] {rackSize0, rackSize1, rackSize3};
+        int count = 0;
+        int expCount = indexesFor0.length + indexesFor1.length + indexesFor3.length;
+
+        for (int i = 0; i < racks.length; i++) {
+            for (int j = 0; j < allIndexes[i].length; j++) {
+                try {
+                    racks[i].removeDevFromSlot(allIndexes[i][j]);
+                } catch (IndexOutOfBoundsException e) {
+                    if (e.getClass().equals(IndexOutOfBoundsException.class)) {
+                        count++;
+                    }
+                }
+            }
+        }
     }
 
     @Test
@@ -303,7 +333,9 @@ public class RackArrayImplTest {
         rack1Full.insertDevToSlot(battery1, 0);
         int counter = 0;
         for (Device device: devicesForRackPartly ) {
-            rackPartly.insertDevToSlot(device, counter++);
+            if (device != null) {
+                rackPartly.insertDevToSlot(device, counter++);
+            }
         }
         counter = 0;
         for (Device device: devicesForRackFull ) {

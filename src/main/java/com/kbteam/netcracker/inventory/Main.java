@@ -1,7 +1,12 @@
 package main.java.com.kbteam.netcracker.inventory;
 
 
+import java.util.logging.Logger;
+
 public class Main {
+
+    private static Logger LOGGER = Logger.getLogger(Main.class.getName());
+
     public static void main(String[] args) {
         sort(args);
         print(args);
@@ -9,7 +14,7 @@ public class Main {
 
     public static void print(String[] args) {
         for(String i:args){
-            System.out.println(i);
+            LOGGER.info(i);
         }
     }
 

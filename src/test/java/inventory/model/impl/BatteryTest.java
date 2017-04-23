@@ -1,6 +1,5 @@
 package test.java.inventory.model.impl;
 
-import main.java.com.kbteam.netcracker.inventory.model.Device;
 import main.java.com.kbteam.netcracker.inventory.model.impl.Battery;
 import org.junit.After;
 import org.junit.Before;

@@ -3,11 +3,14 @@ package main.java.com.kbteam.netcracker.inventory.model.impl;
 import main.java.com.kbteam.netcracker.inventory.model.Device;
 
 import java.util.Date;
+import java.util.logging.Logger;
 
 public abstract class AbstractDevice implements Device {
 
+    private static Logger LOGGER = Logger.getLogger(AbstractDevice.class.getName());
+
     private int in;
-    private String type;
+    private final String type = this.getClass().getSimpleName();
     private String manufacturer;
     private String model;
     private Date productionDate;
@@ -27,9 +30,11 @@ public abstract class AbstractDevice implements Device {
         return type;
     }
 
+    @Deprecated
     @Override
     public void setType(String type) {
-        this.type = type;
+        LOGGER.warning("Deprecated method called setType.");
+//        this.type = type;
     }
 
     @Override

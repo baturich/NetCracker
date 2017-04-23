@@ -1,15 +1,15 @@
 package test.java.inventory.model.impl;
 
+
 import main.java.com.kbteam.netcracker.inventory.model.Device;
 import main.java.com.kbteam.netcracker.inventory.model.impl.AbstractDevice;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Date;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by oleksandr on 05.10.16.
@@ -42,12 +42,20 @@ public class AbstractDeviceTest {
         assertEquals(in, result);
     }
 
+    @Deprecated
     @Test
-    public void setGetType() throws Exception {
+    public void setGetTypeDeprecated() throws Exception {
         device.setType(type);
         String result = device.getType();
 
         assertEquals(type, result);
+    }
+
+    @Test
+    public void setGetType() throws Exception {
+        String result = device.getType();
+
+        assertEquals(device.getClass().getSimpleName(), result);
     }
 
     @Test

@@ -13,7 +13,7 @@ public interface Service {
      *
      * @return implementation of DeviceService interface
      */
-    //DeviceService getDeviceService();
+    DeviceService getDeviceService();
 
     /**
      * Sort array of Device-s by identification number.
